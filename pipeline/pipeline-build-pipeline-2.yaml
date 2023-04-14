@@ -1,0 +1,132 @@
+﻿apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: >
+      {"apiVersion":"tekton.dev/v1beta1","kind":"Pipeline","metadata":{"annotations":{},"name":"build-pipeline-2","namespace":"tekton-hacking"},"spec":{"tasks":[{"name":"git-clone","params":[{"name":"url","value":"https://github.com/cooktheryan/chains-doc.git"},{"name":"revision","value":"main"},{"name":"submodules","value":"true"},{"name":"depth","value":"1"},{"name":"sslVerify","value":"true"},{"name":"deleteExisting","value":"true"},{"name":"verbose","value":"true"},{"name":"gitInitImage","value":"registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8@sha256:da1aedf0b17f2b9dd2a46edc93ff1c0582989414b902a28cd79bad8a035c9ea4"},{"name":"userHome","value":"/tekton/home"}],"taskRef":{"kind":"ClusterTask","name":"git-clone"},"workspaces":[{"name":"output","workspace":"build"}]},{"name":"buildah","params":[{"name":"IMAGE","value":"docker.io/cooktheryan/web"},{"name":"BUILDER_IMAGE","value":"registry.redhat.io/rhel8/buildah@sha256:99cae35f40c7ec050fed3765b2b27e0b8bbea2aa2da7c16408e2ca13c60ff8ee"},{"name":"STORAGE_DRIVER","value":"vfs"},{"name":"DOCKERFILE","value":"app/Dockerfile"},{"name":"CONTEXT","value":"app/"},{"name":"TAG","value":"$(tasks.git-clone.results.commit)"},{"name":"TLSVERIFY","value":"true"},{"name":"FORMAT","value":"oci"}],"runAfter":["git-clone"],"taskRef":{"kind":"Task","name":"buildah-commit-tag"},"workspaces":[{"name":"source","workspace":"build"}]}],"workspaces":[{"name":"build"}]}}
+  creationTimestamp: '2023-04-13T17:34:47Z'
+  generation: 10
+  managedFields:
+    - apiVersion: tekton.dev/v1beta1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
+            .: {}
+            'f:kubectl.kubernetes.io/last-applied-configuration': {}
+        'f:spec': {}
+      manager: kubectl-client-side-apply
+      operation: Update
+      time: '2023-04-13T17:34:47Z'
+    - apiVersion: tekton.dev/v1beta1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:spec':
+          'f:finally': {}
+          'f:params': {}
+          'f:resources': {}
+          'f:tasks': {}
+          'f:workspaces': {}
+      manager: Mozilla
+      operation: Update
+      time: '2023-04-14T01:08:40Z'
+  name: build-pipeline-2
+  namespace: tekton-hacking
+  resourceVersion: '107787091'
+  uid: c028c37f-57f7-4d56-be7c-21df48fa5237
+spec:
+  finally:
+    - name: terraform-cli-6e7
+      params:
+        - name: ARGS
+          value:
+            - destroy
+            - '-auto-approve'
+        - name: terraform-secret
+          value: terraform-creds
+        - name: image
+          value: 'docker.io/hashicorp/terraform:light'
+        - name: httpProxy
+          value: ''
+        - name: httpsProxy
+          value: ''
+        - name: noProxy
+          value: ''
+      taskRef:
+        kind: Task
+        name: terraform-cli
+      workspaces:
+        - name: source
+          workspace: build
+  tasks:
+    - name: git-clone
+      params:
+        - name: url
+          value: 'https://github.com/cooktheryan/chains-doc.git'
+        - name: revision
+          value: terra-hacking
+        - name: submodules
+          value: 'true'
+        - name: depth
+          value: '1'
+        - name: sslVerify
+          value: 'true'
+        - name: deleteExisting
+          value: 'true'
+        - name: verbose
+          value: 'true'
+        - name: gitInitImage
+          value: >-
+            registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8@sha256:da1aedf0b17f2b9dd2a46edc93ff1c0582989414b902a28cd79bad8a035c9ea4
+        - name: userHome
+          value: /tekton/home
+      taskRef:
+        kind: ClusterTask
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: build
+    - name: terraform-cli
+      params:
+        - name: ARGS
+          value:
+            - apply
+            - '-auto-approve'
+        - name: terraform-secret
+          value: terraform-creds
+        - name: image
+          value: 'docker.io/hashicorp/terraform:light'
+      runAfter:
+        - git-clone
+      taskRef:
+        kind: Task
+        name: terraform-cli
+      workspaces:
+        - name: source
+          workspace: build
+    - name: podman-remote
+      params:
+        - name: IMAGE
+          value: quay.io/rcook/tools
+        - name: TAG
+          value: $(tasks.git-clone.results.commit)
+        - name: DOCKERFILE
+          value: app/Dockerfile
+        - name: PRIVATE_KEY
+          value: aws_keys_pairs.pem
+        - name: SSH_USER
+          value: ec2-user
+        - name: HOST
+          value: $(tasks.terraform-cli.results.HOST)
+        - name: CONTEXT
+          value: app/
+      runAfter:
+        - terraform-cli
+      taskRef:
+        kind: Task
+        name: podman-remote
+      workspaces:
+        - name: source
+          workspace: build
+  workspaces:
+    - name: build

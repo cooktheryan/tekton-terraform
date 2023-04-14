@@ -1,0 +1,154 @@
+﻿apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: >
+      {"apiVersion":"tekton.dev/v1beta1","kind":"Task","metadata":{"annotations":{"tekton.dev/categories":"CLI","tekton.dev/displayName":"terraform
+      cli","tekton.dev/pipelines.minVersion":"0.12.1","tekton.dev/platforms":"linux/amd64","tekton.dev/tags":"cli"},"creationTimestamp":"2023-04-13T17:36:17Z","generation":7,"labels":{"app.kubernetes.io/version":"0.2"},"managedFields":[{"apiVersion":"tekton.dev/v1beta1","fieldsType":"FieldsV1","fieldsV1":{"f:metadata":{"f:annotations":{".":{},"f:kubectl.kubernetes.io/last-applied-configuration":{},"f:tekton.dev/categories":{},"f:tekton.dev/displayName":{},"f:tekton.dev/pipelines.minVersion":{},"f:tekton.dev/platforms":{},"f:tekton.dev/tags":{}},"f:labels":{".":{},"f:app.kubernetes.io/version":{}}},"f:spec":{".":{},"f:description":{},"f:params":{}}},"manager":"kubectl-client-side-apply","operation":"Update","time":"2023-04-13T17:36:17Z"},{"apiVersion":"tekton.dev/v1beta1","fieldsType":"FieldsV1","fieldsV1":{"f:spec":{"f:results":{}}},"manager":"kubectl-edit","operation":"Update","time":"2023-04-13T20:25:34Z"},{"apiVersion":"tekton.dev/v1beta1","fieldsType":"FieldsV1","fieldsV1":{"f:spec":{"f:steps":{},"f:workspaces":{}}},"manager":"Mozilla","operation":"Update","time":"2023-04-13T20:38:24Z"}],"name":"terraform-cli","namespace":"tekton-hacking","resourceVersion":"107310760","uid":"2fe7f856-638f-4c1f-a7cc-49e6652ec2c3"},"spec":{"description":"Terraform
+      is an open-source infrastructure as code software tool created by
+      HashiCorp.\nIt enables users to define and provision a datacenter
+      infrastructure using a high-level configuration language known as
+      Hashicorp Configuration Language (HCL), or optionally JSON\nThis Task will
+      do a terraform init before it executes the actual configured ARGS from
+      parameter.","params":[{"default":["--help"],"description":"The terraform
+      cli commands to
+      tun","name":"ARGS","type":"array"},{"default":"terraform-creds","description":"The
+      terraform secret with
+      credentials","name":"terraform-secret","type":"string"},{"default":"docker.io/hashicorp/terraform:light","description":"the
+      terraform image to
+      use","name":"image","type":"string"},{"default":"","description":"HTTP
+      proxy server for non-SSL
+      requests","name":"httpProxy","type":"string"},{"default":"","description":"HTTPS
+      proxy server for SSL
+      requests","name":"httpsProxy","type":"string"},{"default":"","description":"no
+      proxy - opt out of proxying HTTP/HTTPS
+      requests","name":"noProxy","type":"string"}],"results":[{"description":"Public
+      Ip","name":"HOST","type":"string"}],"steps":[{"args":["init"],"command":["terraform"],"env":[{"name":"HTTP_PROXY","value":"$(params.httpProxy)"},{"name":"HTTPS_PROXY","value":"$(params.httpsProxy)"},{"name":"HTTP_PROXY","value":"$(params.httpProxy)"}],"image":"$(params.image)","name":"init","resources":{},"workingDir":"$(workspaces.source.path)"},{"args":["$(params.ARGS)"],"command":["terraform"],"env":[{"name":"HTTP_PROXY","value":"$(params.httpProxy)"},{"name":"HTTPS_PROXY","value":"$(params.httpsProxy)"},{"name":"HTTP_PROXY","value":"$(params.httpProxy)"}],"envFrom":[{"secretRef":{"name":"$(params.terraform-secret)"}}],"image":"$(params.image)","name":"terraform-cli","resources":{},"workingDir":"$(workspaces.source.path)"},{"image":"quay.io/rcook/tools:podman-remote","name":"outputs","resources":{},"script":"cat
+      terraform.tfstate | grep \"public_ip\" | grep -v associate | awk -F:
+      '{print $2}' | tr -d '\"' | tr -d ',' | tail -n1 | tr -d ' ' | tr -d
+      '\\n'| tee
+      /tekton/results/HOST\n","workingDir":"$(workspaces.source.path)"}],"workspaces":[{"name":"source"}]}}
+    tekton.dev/categories: CLI
+    tekton.dev/displayName: terraform cli
+    tekton.dev/pipelines.minVersion: 0.12.1
+    tekton.dev/platforms: linux/amd64
+    tekton.dev/tags: cli
+  resourceVersion: '37680'
+  name: terraform-cli
+  uid: 5cf3e80a-f4da-4d84-9fc9-91ba4893bdd0
+  creationTimestamp: '2023-04-14T12:16:36Z'
+  generation: 1
+  managedFields:
+    - apiVersion: tekton.dev/v1beta1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
+            .: {}
+            'f:kubectl.kubernetes.io/last-applied-configuration': {}
+            'f:tekton.dev/categories': {}
+            'f:tekton.dev/displayName': {}
+            'f:tekton.dev/pipelines.minVersion': {}
+            'f:tekton.dev/platforms': {}
+            'f:tekton.dev/tags': {}
+          'f:labels':
+            .: {}
+            'f:app.kubernetes.io/version': {}
+        'f:spec':
+          .: {}
+          'f:description': {}
+          'f:params': {}
+          'f:results': {}
+          'f:steps': {}
+          'f:workspaces': {}
+      manager: kubectl-client-side-apply
+      operation: Update
+      time: '2023-04-14T12:16:36Z'
+  namespace: tekton-hacking
+  labels:
+    app.kubernetes.io/version: '0.2'
+spec:
+  description: >-
+    Terraform is an open-source infrastructure as code software tool created by
+    HashiCorp.
+
+    It enables users to define and provision a datacenter infrastructure using a
+    high-level configuration language known as Hashicorp Configuration Language
+    (HCL), or optionally JSON
+
+    This Task will do a terraform init before it executes the actual configured
+    ARGS from parameter.
+  params:
+    - default:
+        - '--help'
+      description: The terraform cli commands to tun
+      name: ARGS
+      type: array
+    - default: terraform-creds
+      description: The terraform secret with credentials
+      name: terraform-secret
+      type: string
+    - default: 'docker.io/hashicorp/terraform:light'
+      description: the terraform image to use
+      name: image
+      type: string
+    - default: ''
+      description: HTTP proxy server for non-SSL requests
+      name: httpProxy
+      type: string
+    - default: ''
+      description: HTTPS proxy server for SSL requests
+      name: httpsProxy
+      type: string
+    - default: ''
+      description: no proxy - opt out of proxying HTTP/HTTPS requests
+      name: noProxy
+      type: string
+  results:
+    - description: Public Ip
+      name: HOST
+      type: string
+  steps:
+    - args:
+        - init
+      command:
+        - terraform
+      env:
+        - name: HTTP_PROXY
+          value: $(params.httpProxy)
+        - name: HTTPS_PROXY
+          value: $(params.httpsProxy)
+        - name: HTTP_PROXY
+          value: $(params.httpProxy)
+      image: $(params.image)
+      name: init
+      resources: {}
+      workingDir: $(workspaces.source.path)
+    - args:
+        - $(params.ARGS)
+      command:
+        - terraform
+      env:
+        - name: HTTP_PROXY
+          value: $(params.httpProxy)
+        - name: HTTPS_PROXY
+          value: $(params.httpsProxy)
+        - name: HTTP_PROXY
+          value: $(params.httpProxy)
+      envFrom:
+        - secretRef:
+            name: $(params.terraform-secret)
+      image: $(params.image)
+      name: terraform-cli
+      resources: {}
+      workingDir: $(workspaces.source.path)
+    - image: 'quay.io/rcook/tools:podman-remote'
+      name: outputs
+      resources: {}
+      script: >
+        cat terraform.tfstate | grep "public_ip" | grep -v associate | awk -F:
+        '{print $2}' | tr -d '"' | tr -d ',' | tail -n1 | tr -d ' ' | tr -d
+        '\n'| tee /tekton/results/HOST
+      workingDir: $(workspaces.source.path)
+  workspaces:
+    - name: source
